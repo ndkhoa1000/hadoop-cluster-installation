@@ -1,3 +1,5 @@
+🌐 English | [Tiếng Việt](./README.vi.md)
+
 # Apache Hadoop Cluster Installation Guide
 
 This comprehensive guide will walk you through installing and configuring an Apache Hadoop cluster, covering both single-node (pseudo-distributed) and multi-node (fully distributed) setups.
