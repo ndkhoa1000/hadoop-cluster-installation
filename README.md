@@ -18,7 +18,7 @@ This comprehensive guide will walk you through installing and configuring an Apa
 ## Prerequisites
 
 ### System Requirements
-- **Operating System**: Linux, macOS, or Windows (with WSL)
+- **Operating System**: Linux, or Windows (with WSL)
 - **Java**: OpenJDK 8, 11, or 17 (recommended: OpenJDK 11)
 - **Memory**: Minimum 4GB RAM (8GB+ recommended for multi-node)
 - **Disk Space**: Minimum 20GB available space
@@ -30,6 +30,22 @@ This comprehensive guide will walk you through installing and configuring an Apa
 - rsync (for file synchronization)
 
 ## Download and Installation
+### Step 0: Setup **master** user
+``` bash
+sudo adduser hadoop
+
+# add password
+sudo passwd hadoop
+
+# add hadoop to sudo group
+sudo adduser hadoop sudo 
+
+# switch to hadoop user
+su hadoop
+
+#Navigate to hadoop home dir
+cd ~
+```
 
 ### Step 1: Download Hadoop
 
@@ -43,6 +59,7 @@ wget https://archive.apache.org/dist/hadoop/common/hadoop-3.4.1/hadoop-3.4.1.tar
 
 # Verify the download (optional)
 wget https://downloads.apache.org/hadoop/common/hadoop-3.4.1/hadoop-3.4.1.tar.gz.sha512
+
 shasum -a 512 -c hadoop-3.4.1.tar.gz.sha512
 ```
 
@@ -52,9 +69,7 @@ shasum -a 512 -c hadoop-3.4.1.tar.gz.sha512
 # Extract the archive
 tar -xzf hadoop-3.4.1.tar.gz
 
-# Move to installation directory (optional)
-sudo mv hadoop-3.4.1 /opt/hadoop
-# OR keep it in your preferred location
+# Keep it in your preferred location
 mv hadoop-3.4.1 ~/hadoop
 ```
 
@@ -64,8 +79,7 @@ mv hadoop-3.4.1 ~/hadoop
 
 #### On Ubuntu/Debian:
 ```bash
-sudo apt update
-sudo apt install openjdk-11-jdk
+sudo apt update && sudo apt install openjdk-11-jdk -y
 ```
 
 #### On CentOS/RHEL:
@@ -73,22 +87,17 @@ sudo apt install openjdk-11-jdk
 sudo yum install java-11-openjdk-devel
 ```
 
-#### On macOS:
-```bash
-brew install openjdk@11
-```
 
 ### Step 2: Configure Environment Variables
 
-Add the following to your `~/.bashrc`, `~/.zshrc`, or `~/.profile`:
+Add the following to your `~/.bashrc` or `~/.profile`:
 
 ```bash
 # Java Environment
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64  # Linux
-# export JAVA_HOME=/opt/homebrew/Cellar/openjdk@11/11.0.XX/libexec/openjdk.jdk/Contents/Home  # macOS
 
 # Hadoop Environment
-export HADOOP_HOME=/opt/hadoop  # or your installation path
+export HADOOP_HOME=$HOME/hadoop  # or your installation path
 export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
 export HADOOP_MAPRED_HOME=$HADOOP_HOME
 export HADOOP_COMMON_HOME=$HADOOP_HOME
@@ -101,7 +110,7 @@ export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 
 Apply the changes:
 ```bash
-source ~/.bashrc  # or ~/.zshrc
+source ~/.bashrc  # or ~/.profile
 ```
 
 ### Step 3: Configure SSH (Required for cluster operations)
@@ -149,7 +158,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     </property>
     <property>
         <name>hadoop.tmp.dir</name>
-        <value>/opt/hadoop/tmp</value>
+        <value>$HADOOP_HOME/tmp</value>
         <description>Temporary directory for Hadoop</description>
     </property>
 </configuration>
@@ -160,12 +169,12 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 <configuration>
     <property>
         <name>dfs.namenode.name.dir</name>
-        <value>/opt/hadoop/data/namenode</value>
+        <value>$HADOOP_HOME/data/namenode</value>
         <description>Directory for namenode metadata</description>
     </property>
     <property>
         <name>dfs.datanode.data.dir</name>
-        <value>/opt/hadoop/data/datanode</value>
+        <value>$HADOOP_HOME/data/datanode</value>
         <description>Directory for datanode data</description>
     </property>
     <property>
@@ -175,7 +184,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     </property>
     <property>
         <name>dfs.namenode.checkpoint.dir</name>
-        <value>/opt/hadoop/data/secondary</value>
+        <value>$HADOOP_HOME/data/secondary</value>
         <description>Secondary namenode checkpoint directory</description>
     </property>
 </configuration>
@@ -200,14 +209,14 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ```xml
 <configuration>
     <property>
-        <name>yarn.nodemanager.aux-services</name>
-        <value>mapreduce_shuffle</value>
-        <description>Auxiliary services for NodeManager</description>
-    </property>
-    <property>
         <name>yarn.resourcemanager.hostname</name>
         <value>localhost</value>
         <description>ResourceManager hostname</description>
+    </property>
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+        <description>Auxiliary services for NodeManager</description>
     </property>
     <property>
         <name>yarn.nodemanager.env-whitelist</name>
@@ -220,14 +229,12 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
 ```bash
 # Create data directories
-sudo mkdir -p /opt/hadoop/data/namenode
-sudo mkdir -p /opt/hadoop/data/datanode
-sudo mkdir -p /opt/hadoop/data/secondary
-sudo mkdir -p /opt/hadoop/tmp
+sudo mkdir -p $HADOOP_HOME/data/{namenode,datanode,secondary}
+sudo mkdir -p $HADOOP_HOME/tmp
 
 # Set appropriate ownership
-sudo chown -R $USER:$USER /opt/hadoop/data
-sudo chown -R $USER:$USER /opt/hadoop/tmp
+sudo chown -R $USER:$USER $HADOOP_HOME/data
+sudo chown -R $USER:$USER $HADOOP_HOME/tmp
 ```
 
 ## Single-Node Setup
@@ -235,7 +242,7 @@ sudo chown -R $USER:$USER /opt/hadoop/tmp
 ### Format the NameNode (First-time setup only)
 
 ```bash
-hdfs namenode -format -force
+hdfs namenode -format
 ```
 
 ### Start Hadoop Services
@@ -281,7 +288,7 @@ jps
 ```xml
 <property>
     <name>fs.defaultFS</name>
-    <value>hdfs://master-node:9000</value>
+    <value>hdfs://master:9000</value>
 </property>
 ```
 
@@ -289,7 +296,7 @@ jps
 ```xml
 <property>
     <name>yarn.resourcemanager.hostname</name>
-    <value>master-node</value>
+    <value>master</value>
 </property>
 ```
 
@@ -299,35 +306,76 @@ jps
 vim $HADOOP_HOME/etc/hadoop/workers
 
 # Add worker node hostnames (one per line)
-worker-node-1
-worker-node-2
-worker-node-3
+# Remove localhost for cluster (if has)
+node1
+node2
+node3
 ```
+### Step 1.5: Configure Memory Allocation
+Memory allocation can be tricky on low RAM nodes because default values are not suitable for nodes with less than 8GB of RAM. This section will highlight how memory allocation works for MapReduce jobs, and provide a sample configuration for **2GB RAM** nodes.
 
+1. Update `yarn-site.xml`:
+```xml
+<property>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+        <value>1536</value>
+</property>
+
+<property>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+        <value>1536</value>
+</property>
+
+<property>
+        <name>yarn.scheduler.minimum-allocation-mb</name>
+        <value>128</value>
+</property>
+
+<property>
+        <name>yarn.nodemanager.vmem-check-enabled</name>
+        <value>false</value>
+</property>
+```
+2. Update `mapred-site.xml`:
+```xml
+<property>
+        <name>yarn.app.mapreduce.am.resource.mb</name>
+        <value>512</value>
+</property>
+
+<property>
+        <name>mapreduce.map.memory.mb</name>
+        <value>256</value>
+</property>
+<property>
+        <name>mapreduce.reduce.memory.mb</name>
+        <value>256</value>
+</property>
+```
 ### Step 2: Configure Slave Nodes
 
 1. Copy the entire Hadoop configuration from master to all slave nodes:
 ```bash
-scp -r $HADOOP_HOME/etc/hadoop/ user@worker-node:/opt/hadoop/etc/
+scp -r $HADOOP_HOME user@worker-node:~/
 ```
 
 2. Update `hdfs-site.xml` on slaves to point to master:
 ```xml
 <property>
     <name>dfs.namenode.name.dir</name>
-    <value>/opt/hadoop/data/namenode</value>
+    <value>$HADOOP_HOME/data/namenode</value>
 </property>
 ```
 
 ### Step 3: Network Configuration
 
-Update `/etc/hosts` on all nodes:
+Update `/etc/hosts` on **all nodes**:
 ```bash
 # Add entries for all nodes
-192.168.1.100   master-node
-192.168.1.101   worker-node-1
-192.168.1.102   worker-node-2
-192.168.1.103   worker-node-3
+192.168.1.100   master
+192.168.1.101   node1
+192.168.1.102   node2
+192.168.1.103   node3
 ```
 
 ### Step 4: Start Multi-Node Cluster
@@ -343,7 +391,7 @@ start-all.sh
 
 ## Starting and Stopping Hadoop Cluster
 
-### 🎯 **Quick Start (Recommended)**
+### 🎯 **Quick Start (Recommended, using written script in this Github repository)**
 
 Use the convenient control script included in this repository:
 
@@ -657,7 +705,7 @@ chmod +x ./manage-cluster-nodes.sh
 #### ➕ **Adding Nodes**
 ```bash
 # Add a new worker node
-./manage-cluster-nodes.sh add worker-node-1
+./manage-cluster-nodes.sh add node1
 
 # Add node by IP address
 ./manage-cluster-nodes.sh add 192.168.1.100
@@ -666,16 +714,16 @@ chmod +x ./manage-cluster-nodes.sh
 #### ➖ **Removing Nodes (Safe Process)**
 ```bash
 # Step 1: Safely decommission the node
-./manage-cluster-nodes.sh decommission worker-node-1
+./manage-cluster-nodes.sh decommission node1
 
 # Step 2: Remove from cluster (after decommissioning completes)
-./manage-cluster-nodes.sh remove worker-node-1
+./manage-cluster-nodes.sh remove node1
 ```
 
 #### 🔄 **Node Management**
 ```bash
 # Bring back a decommissioned node
-./manage-cluster-nodes.sh recommission worker-node-1
+./manage-cluster-nodes.sh recommission node1
 ```
 
 #### 🏗️ **Cluster Conversion**
@@ -700,28 +748,28 @@ chmod +x ./manage-cluster-nodes.sh
 
 1. **Add node to cluster configuration:**
    ```bash
-   ./manage-cluster-nodes.sh add worker-node-2
+   ./manage-cluster-nodes.sh add node2
    ```
 
 2. **Set up SSH passwordless access:**
    ```bash
    # Copy SSH key to new node
-   ssh-copy-id user@worker-node-2
+   ssh-copy-id user@node2
    
    # Test SSH access
-   ssh worker-node-2
+   ssh node2
    ```
 
 3. **Install Hadoop on the new node:**
    ```bash
    # Copy Hadoop installation to new node
-   scp -r $HADOOP_HOME user@worker-node-2:/opt/
+   scp -r $HADOOP_HOME user@node2:~/
    ```
 
 4. **Copy configuration files:**
    ```bash
    # Copy configuration to new node
-   scp -r $HADOOP_HOME/etc/hadoop/* user@worker-node-2:$HADOOP_HOME/etc/hadoop/
+   scp -r $HADOOP_HOME/etc/hadoop/* user@node2:$HADOOP_HOME/etc/hadoop/
    ```
 
 5. **Refresh cluster nodes:**
@@ -736,15 +784,15 @@ chmod +x ./manage-cluster-nodes.sh
 6. **Start services on new node:**
    ```bash
    # On the new worker node, start DataNode and NodeManager
-   ssh worker-node-2 "$HADOOP_HOME/bin/hdfs --daemon start datanode"
-   ssh worker-node-2 "$HADOOP_HOME/bin/yarn --daemon start nodemanager"
+   ssh node2 "$HADOOP_HOME/bin/hdfs --daemon start datanode"
+   ssh node2 "$HADOOP_HOME/bin/yarn --daemon start nodemanager"
    ```
 
 ### Safely Removing a Node - Complete Process
 
 1. **Decommission the node:**
    ```bash
-   ./manage-cluster-nodes.sh decommission worker-node-2
+   ./manage-cluster-nodes.sh decommission node2
    ```
 
 2. **Monitor decommissioning progress:**
@@ -760,13 +808,13 @@ chmod +x ./manage-cluster-nodes.sh
 
 4. **Remove the node:**
    ```bash
-   ./manage-cluster-nodes.sh remove worker-node-2
+   ./manage-cluster-nodes.sh remove node2
    ```
 
 5. **Stop services on the removed node:**
    ```bash
-   ssh worker-node-2 "$HADOOP_HOME/bin/yarn --daemon stop nodemanager"
-   ssh worker-node-2 "$HADOOP_HOME/bin/hdfs --daemon stop datanode"
+   ssh node2 "$HADOOP_HOME/bin/yarn --daemon stop nodemanager"
+   ssh node2 "$HADOOP_HOME/bin/hdfs --daemon stop datanode"
    ```
 
 ### Configuration Files Modified
@@ -853,6 +901,13 @@ hdfs dfs -cat /output/part-r-00000
 
 ### Common Issues and Solutions
 
+#### 0. Quick file sync using **rsync**:
+Using ***scp*** might not sync file across all nodes. So ***rsync*** will map and replace all files with the same name and make sure they will be updated exactly.
+```bash
+rsync -avz ~/hadoop/etc/hadoop/ user@node1:~/hadoop/etc/hadoop/
+
+```
+
 #### 1. Java-related Errors
 ```bash
 # Verify Java installation
@@ -866,7 +921,7 @@ echo $JAVA_HOME
 ```bash
 # Test SSH connectivity
 ssh localhost
-ssh worker-node-1
+ssh node1
 
 # Check SSH key setup
 ls -la ~/.ssh/
