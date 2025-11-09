@@ -1,4 +1,4 @@
-🌐 English | [Tiếng Việt](./README.vi.md)
+🌐 [English](./README.md) | Tiếng Việt
 
 # Hướng Dẫn Cài Đặt Cụm Apache Hadoop
 
