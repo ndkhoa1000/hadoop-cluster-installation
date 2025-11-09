@@ -36,7 +36,7 @@ Hướng dẫn toàn diện này sẽ hướng dẫn bạn cài đặt và cấu
 ```bash
 sudo adduser hadoop
 
-# thêm mật khẩu
+# thêm mật khẩu (nếu adduser không cho tạo password)
 sudo passwd hadoop
 
 # thêm hadoop vào nhóm sudo
