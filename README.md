@@ -34,16 +34,13 @@ This comprehensive guide will walk you through installing and configuring an Apa
 ## Download and Installation
 ### Step 0: Setup **master** user
 ``` bash
-sudo adduser hadoop
-
-# add password
-sudo passwd hadoop
+sudo adduser hadoop_n1
 
 # add hadoop to sudo group
-sudo adduser hadoop sudo 
+sudo adduser hadoop_n1 sudo 
 
 # switch to hadoop user
-su hadoop
+su hadoop_n1
 
 #Navigate to hadoop home dir
 cd ~
@@ -150,6 +147,8 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
 ### Step 2: Configure Core Components
 
+You can change `home/hadoop_n1/hadoop` as your Home directory.
+
 #### `core-site.xml`
 ```xml
 <configuration>
@@ -160,7 +159,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     </property>
     <property>
         <name>hadoop.tmp.dir</name>
-        <value>$HADOOP_HOME/tmp</value>
+        <value>/home/hadoop_n1/hadoop/tmp</value>
         <description>Temporary directory for Hadoop</description>
     </property>
 </configuration>
@@ -171,12 +170,12 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 <configuration>
     <property>
         <name>dfs.namenode.name.dir</name>
-        <value>$HADOOP_HOME/data/namenode</value>
+        <value>/home/hadoop_n1/hadoop/data/namenode</value>
         <description>Directory for namenode metadata</description>
     </property>
     <property>
         <name>dfs.datanode.data.dir</name>
-        <value>$HADOOP_HOME/data/datanode</value>
+        <value>/home/hadoop_n1/hadoop/data/datanode</value>
         <description>Directory for datanode data</description>
     </property>
     <property>
@@ -186,7 +185,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     </property>
     <property>
         <name>dfs.namenode.checkpoint.dir</name>
-        <value>$HADOOP_HOME/data/secondary</value>
+        <value>/home/hadoop_n1/hadoop/data/secondary</value>
         <description>Secondary namenode checkpoint directory</description>
     </property>
 </configuration>
@@ -202,7 +201,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     </property>
     <property>
         <name>mapreduce.application.classpath</name>
-        <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*:$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*</value>
+        <value>/home/hadoop_n1/hadoop/share/hadoop/mapreduce/*:/home/hadoop_n1/hadoop/share/hadoop/mapreduce/lib/*</value>
     </property>
 </configuration>
 ```
@@ -356,19 +355,12 @@ Memory allocation can be tricky on low RAM nodes because default values are not 
 ```
 ### Step 2: Configure Slave Nodes
 
-1. Copy the entire Hadoop configuration from master to all slave nodes:
+ Copy the entire Hadoop configuration from master to all slave nodes:
 ```bash
-scp -r $HADOOP_HOME user@worker-node:~/
+scp -r $HADOOP_HOME hadoop_n1@node1:~/
+#repeat with node2, node3,...
 ```
-
-2. Update `hdfs-site.xml` on slaves to point to master:
-```xml
-<property>
-    <name>dfs.namenode.name.dir</name>
-    <value>$HADOOP_HOME/data/namenode</value>
-</property>
-```
-
+Install Java, Open-SSH, configure SSH if slaves haven't yet.
 ### Step 3: Network Configuration
 
 Update `/etc/hosts` on **all nodes**:

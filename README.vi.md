@@ -1,4 +1,4 @@
-🌐 [English](./README.md) | Tiếng Việt
+🌐 English | [Tiếng Việt](./README.vi.md)
 
 # Hướng Dẫn Cài Đặt Cụm Apache Hadoop
 
@@ -34,16 +34,13 @@ Hướng dẫn toàn diện này sẽ hướng dẫn bạn cài đặt và cấu
 ## Tải Xuống và Cài Đặt
 ### Bước 0: Thiết Lập Người Dùng **master**
 ```bash
-sudo adduser hadoop
+sudo adduser hadoop_n1
 
-# thêm mật khẩu (nếu adduser không cho tạo password)
-sudo passwd hadoop
+# thêm hadoop_n1 vào nhóm sudo
+sudo adduser hadoop_n1 sudo 
 
-# thêm hadoop vào nhóm sudo
-sudo adduser hadoop sudo 
-
-# chuyển sang người dùng hadoop
-su hadoop
+# chuyển sang người dùng hadoop_n1
+su hadoop_n1
 
 # Điều hướng đến thư mục home của hadoop
 cd ~
@@ -150,6 +147,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ### Bước 2: Cấu Hình Các Thành Phần Cốt Lõi
 
 #### `core-site.xml`
+Bạn có thể thay đổi `/home/hadoop_n1/hadoop` theo đường dẫn Home của bạn.
 ```xml
 <configuration>
     <property>
@@ -159,7 +157,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     </property>
     <property>
         <name>hadoop.tmp.dir</name>
-        <value>$HADOOP_HOME/tmp</value>
+        <value>/home/hadoop_n1/hadoop/tmp</value>
         <description>Thư mục tạm thời cho Hadoop</description>
     </property>
 </configuration>
@@ -170,12 +168,12 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 <configuration>
     <property>
         <name>dfs.namenode.name.dir</name>
-        <value>$HADOOP_HOME/data/namenode</value>
+        <value>/home/hadoop_n1/hadoop/data/namenode</value>
         <description>Thư mục cho metadata namenode</description>
     </property>
     <property>
         <name>dfs.datanode.data.dir</name>
-        <value>$HADOOP_HOME/data/datanode</value>
+        <value>/home/hadoop_n1/hadoop/data/datanode</value>
         <description>Thư mục cho dữ liệu datanode</description>
     </property>
     <property>
@@ -185,7 +183,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     </property>
     <property>
         <name>dfs.namenode.checkpoint.dir</name>
-        <value>$HADOOP_HOME/data/secondary</value>
+        <value>/home/hadoop_n1/hadoop/data/secondary</value>
         <description>Thư mục checkpoint secondary namenode</description>
     </property>
 </configuration>
@@ -201,7 +199,7 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
     </property>
     <property>
         <name>mapreduce.application.classpath</name>
-        <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*:$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*</value>
+        <value>/home/hadoop_n1/hadoop/share/hadoop/mapreduce/*:/home/hadoop_n1/hadoop/share/hadoop/mapreduce/lib/*</value>
     </property>
 </configuration>
 ```
@@ -359,14 +357,17 @@ Phân bổ bộ nhớ có thể khó khăn trên các node RAM thấp vì các g
 
 1. Sao chép toàn bộ cấu hình Hadoop từ master đến tất cả các slave node:
 ```bash
-scp -r $HADOOP_HOME user@worker-node:~/
+scp -r $HADOOP_HOME hadoop_n1@node1:~/
+# lặp lại với node2, node3,...
 ```
 
-2. Cập nhật `hdfs-site.xml` trên slaves để trỏ đến master:
+Install Java, OpenSSH và cấu hình SSH nếu các slave chưa được thiết lập.
+
+2. Cập nhật `hdfs-site.xml` trên slaves để trỏ đến master (giữ cùng cấu trúc thư mục nếu bạn dùng /home/hadoop_n1/hadoop):
 ```xml
 <property>
     <name>dfs.namenode.name.dir</name>
-    <value>$HADOOP_HOME/data/namenode</value>
+    <value>/home/hadoop_n1/hadoop/data/namenode</value>
 </property>
 ```
 
