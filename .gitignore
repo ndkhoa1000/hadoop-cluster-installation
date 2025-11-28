@@ -54,3 +54,25 @@ hadoop/backups
 
 # Exclude the entire Hadoop distribution (we only need our scripts and docs)
 hadoop/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
